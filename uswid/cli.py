@@ -293,7 +293,7 @@ def main():
 
     # sanity check
     if not load_filepaths and not save_filepaths:
-        print("Use uswid --help for command line arguments")
+        print("Modified uswid!\nUse uswid --help for command line arguments")
         sys.exit(1)
 
     # always load into a temporary identity so that we can query the tag_id
@@ -366,6 +366,8 @@ def main():
                     sys.exit(1)
                 with open(filepath, "rb") as f:
                     for identity in base.load(f.read(), path=os.path.dirname(filepath)):
+                        if "__" in filepath:
+                            identity.is_main_file = True
                         identity_new = container.merge(identity)
                         if identity_new:
                             print(

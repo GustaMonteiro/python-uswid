@@ -78,6 +78,7 @@ class uSwidIdentity:
         """List of evidences"""
         self._entities: Dict[str, uSwidEntity] = {}
         self._links: Dict[str, uSwidLink] = {}
+        self.is_main_file = False
 
     @property
     def software_name(self) -> Optional[str]:

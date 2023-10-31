@@ -55,8 +55,15 @@ class uSwidFormatCycloneDX(uSwidFormatBase):
         components: List[Dict[str, Any]] = []
         licenses: List[Dict[str, Any]] = []
         dependencies: List[Dict[str, str]] = []
+
         for identity in container:
-            components.append(self._save_identity(identity))
+            if identity.is_main_file:
+                metadata["component"] = self._save_identity(identity)
+            else:
+                components.append(self._save_identity(identity))
+            dependency_entry = {}
+            dependency_entry["ref"] = "swid:" + identity.tag_id
+            dependency_entry["dependsOn"] = []
             for link in identity.links:
                 if not link.href:
                     continue
@@ -65,7 +72,9 @@ class uSwidFormatCycloneDX(uSwidFormatBase):
                     license_choice["license"] = {"url": link.href}
                     licenses.append(license_choice)
                 if link.rel in ["component", "compiler"]:
-                    dependencies.append({"ref": link.href})
+                    # dependencies.append({"ref": link.href})
+                    dependency_entry["dependsOn"].append(link.href)
+            dependencies.append(dependency_entry)
 
         # optional
         if components:
