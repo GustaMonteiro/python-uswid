@@ -17,6 +17,8 @@ from .link import uSwidLink
 from .payload import uSwidPayload
 from .evidence import uSwidEvidence
 
+from enum import Enum
+
 _VERSION_SCHEME_TO_STRING = {
     uSwidVersionScheme.MULTIPARTNUMERIC: "multipartnumeric",
     uSwidVersionScheme.MULTIPARTNUMERIC_SUFFIX: "multipartnumeric+suffix",
@@ -32,6 +34,11 @@ _VERSION_SCHEME_FROM_STRING = {
     "semver": uSwidVersionScheme.SEMVER,
 }
 
+class FileType (Enum):
+    MAIN = 0,
+    LIBRARY = 1,
+    TOPLEVEL_COMPONENT = 2,
+    UNDEFINED = 3
 
 class uSwidIdentity:
     """Represents a SWID identity"""
@@ -78,7 +85,7 @@ class uSwidIdentity:
         """List of evidences"""
         self._entities: Dict[str, uSwidEntity] = {}
         self._links: Dict[str, uSwidLink] = {}
-        self.is_main_file = False
+        self.type: FileType = FileType.UNDEFINED
 
     @property
     def software_name(self) -> Optional[str]:

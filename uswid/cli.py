@@ -16,6 +16,8 @@ import tempfile
 import subprocess
 import socket
 
+from .identity import FileType
+
 import os
 import sys
 import shutil
@@ -293,7 +295,7 @@ def main():
 
     # sanity check
     if not load_filepaths and not save_filepaths:
-        print("Modified uswid!\nUse uswid --help for command line arguments")
+        print("Modified uswid with flexible components type!\nUse uswid --help for command line arguments")
         sys.exit(1)
 
     # always load into a temporary identity so that we can query the tag_id
@@ -366,8 +368,12 @@ def main():
                     sys.exit(1)
                 with open(filepath, "rb") as f:
                     for identity in base.load(f.read(), path=os.path.dirname(filepath)):
-                        if "__" in filepath:
-                            identity.is_main_file = True
+                        if "_MAIN_" in filepath:
+                            identity.type = FileType.MAIN
+                        elif "_LIB_" in filepath:
+                            identity.type = FileType.LIBRARY
+                        elif "_TOPLEVEL_" in filepath:
+                            identity.type = FileType.TOPLEVEL_COMPONENT
                         identity_new = container.merge(identity)
                         if identity_new:
                             print(

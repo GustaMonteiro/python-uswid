@@ -17,6 +17,7 @@ from .identity import uSwidIdentity
 from .entity import uSwidEntityRole
 from .hash import uSwidHashAlg
 
+from .identity import FileType
 
 def _convert_hash_alg_id(alg_id: uSwidHashAlg) -> str:
     return {
@@ -57,23 +58,24 @@ class uSwidFormatCycloneDX(uSwidFormatBase):
         dependencies: List[Dict[str, str]] = []
 
         for identity in container:
-            if identity.is_main_file:
+            if identity.type == FileType.MAIN:
                 metadata["component"] = self._save_identity(identity)
             else:
                 components.append(self._save_identity(identity))
             dependency_entry = {}
             dependency_entry["ref"] = "swid:" + identity.tag_id
-            dependency_entry["dependsOn"] = []
-            for link in identity.links:
-                if not link.href:
-                    continue
-                if link.rel == "license":
-                    license_choice: Dict[str, Any] = {}
-                    license_choice["license"] = {"url": link.href}
-                    licenses.append(license_choice)
-                if link.rel in ["component", "compiler"]:
-                    # dependencies.append({"ref": link.href})
-                    dependency_entry["dependsOn"].append(link.href)
+            if identity.type != FileType.LIBRARY:
+                dependency_entry["dependsOn"] = []
+                for link in identity.links:
+                    if not link.href:
+                        continue
+                    if link.rel == "license":
+                        license_choice: Dict[str, Any] = {}
+                        license_choice["license"] = {"url": link.href}
+                        licenses.append(license_choice)
+                    if link.rel in ["component", "compiler"]:
+                        # dependencies.append({"ref": link.href})
+                        dependency_entry["dependsOn"].append(link.href)
             dependencies.append(dependency_entry)
 
         # optional
@@ -88,7 +90,12 @@ class uSwidFormatCycloneDX(uSwidFormatBase):
 
     def _save_identity(self, identity: uSwidIdentity) -> Dict[str, Any]:
         component: Dict[str, Any] = {}
-        component["type"] = "firmware"
+
+        if identity.type == FileType.LIBRARY:
+            component["type"] = "library"
+        elif identity.type == FileType.TOPLEVEL_COMPONENT:
+            component["type"] = "firmware"
+
         if identity.persistent_id:
             component["group"] = identity.persistent_id
         if identity.product:
